@@ -26,6 +26,7 @@
 package bsh;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -39,12 +40,50 @@ public class Modifiers implements java.io.Serializable
 {
     private static final long serialVersionUID = 1L;
     public static final int CLASS=0, METHOD=1, FIELD=2;
-    private final int context;
+    private  int context;
     private final List<String> modifiers = new ArrayList<>();
+
+    public Modifiers() {
+
+    }
 
     public Modifiers(int context) {
         this.context = context;
     }
+
+
+    /**
+     @param context is METHOD or FIELD
+     */
+    public void addModifier( int context, String name )
+    {
+
+        Object existing = modifiers.contains( name);
+        if ( existing != null )
+            throw new IllegalStateException("Duplicate modifier: "+ name );
+
+        int count = 0;
+        if ( hasModifier("private") ) ++count;
+        if ( hasModifier("protected") ) ++count;
+        if ( hasModifier("public") ) ++count;
+        if ( count > 1 )
+            throw new IllegalStateException(
+                    "public/private/protected cannot be used in combination." );
+
+        switch( context )
+        {
+            case CLASS:
+                validateForClass();
+                break;
+            case METHOD:
+                validateForMethod();
+                break;
+            case FIELD:
+                validateForField();
+                break;
+        }
+    }
+
 
     /**
         @param context is METHOD or FIELD
